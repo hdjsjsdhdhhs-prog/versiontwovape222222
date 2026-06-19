@@ -1,0 +1,55 @@
+{% extends "admin/layout.html" %}
+{% block title %}Заказы{% endblock %}
+{% block admin_content %}
+  <h1>Заказы</h1>
+  <div class="tabs">
+    <a class="{{ 'active' if not status else '' }}" href="/admin/orders">Все</a>
+    <a class="{{ 'active' if status == 'PENDING' else '' }}" href="/admin/orders?status=PENDING">В обработке</a>
+    <a class="{{ 'active' if status == 'COMPLETED' else '' }}" href="/admin/orders?status=COMPLETED">Выполнен</a>
+    <a class="{{ 'active' if status == 'CANCELLED' else '' }}" href="/admin/orders?status=CANCELLED">Отменен</a>
+  </div>
+  <section class="stack">
+    {% for order in orders %}
+      <article class="card order-admin-card">
+        <div class="row-between">
+          <div>
+            <strong>#{{ order.id[-6:] }}</strong>
+            <div class="muted">{{ order.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+          </div>
+          <form method="post" action="/admin/orders/{{ order.id }}/status">
+            <select class="input status-select" name="status" onchange="this.form.submit()">
+              <option value="PENDING" {{ "selected" if order.status.value == "PENDING" else "" }}>В обработке</option>
+              <option value="COMPLETED" {{ "selected" if order.status.value == "COMPLETED" else "" }}>Выполнен</option>
+              <option value="CANCELLED" {{ "selected" if order.status.value == "CANCELLED" else "" }}>Отменен</option>
+            </select>
+          </form>
+        </div>
+        <div class="muted">
+          Клиент: {{ order.customer_telegram_username }}
+        </div>
+        <div class="muted">Оплата: {{ order.payment_method.value }} · Доставка: {{ order.delivery_method.value }}</div>
+        {% if order.address %}<div><span class="muted">Адрес:</span> {{ order.address }}</div>{% endif %}
+        {% if order.comment %}<div><span class="muted">Комментарий:</span> {{ order.comment }}</div>{% endif %}
+        <div class="items-list">
+          {% for item in order.items %}
+            <div class="summary-line">
+              <span>{{ item.product_name }} - {{ item.flavor_name }} x {{ item.quantity }}</span>
+              <span>{{ format_price((item.unit_sale_price or item.unit_price) * item.quantity, order.currency) }}</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="summary-line total"><span>Итого</span><strong>{{ format_price(order.total, order.currency) }}</strong></div>
+        {% if order.status_history %}
+          <details class="history">
+            <summary>История статусов</summary>
+            {% for event in order.status_history %}
+              <div class="muted">{{ event.created_at.strftime("%d.%m.%Y %H:%M") }}: {{ event.from_status.value if event.from_status else "new" }} → {{ event.to_status.value }}</div>
+            {% endfor %}
+          </details>
+        {% endif %}
+      </article>
+    {% else %}
+      <div class="card empty">Нет заказов.</div>
+    {% endfor %}
+  </section>
+{% endblock %}

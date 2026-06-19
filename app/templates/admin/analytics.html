@@ -1,0 +1,53 @@
+{% extends "admin/layout.html" %}
+{% block title %}Аналитика{% endblock %}
+{% block admin_content %}
+  <h1>Аналитика</h1>
+  <div class="stat-grid analytics-presets">
+    {% set labels = {"today":"Сегодня","yesterday":"Вчера","week":"Неделя","month":"Месяц","allTime":"Все время"} %}
+    {% for key, summary in presets.items() %}
+      <a class="card stat-card" href="/admin/analytics?range={{ key if key == 'allTime' else '' }}">
+        <span>{{ labels[key] }}</span>
+        <strong class="{{ 'good' if summary.profit >= 0 else 'bad' }}">{{ format_price(summary.profit, summary.currency) }}</strong>
+        <small>{{ summary.order_count }} зак. · {{ format_price(summary.revenue, summary.currency) }}</small>
+      </a>
+    {% endfor %}
+  </div>
+  <section class="card editor-card">
+    <form class="admin-form compact" method="get" action="/admin/analytics">
+      <label class="field">Дата<input class="input" name="date" type="date"></label>
+      <label class="field">С<input class="input" name="from" type="date"></label>
+      <label class="field">По<input class="input" name="to" type="date"></label>
+      <button class="btn-primary" type="submit">Применить</button>
+    </form>
+  </section>
+  <section class="stat-grid">
+    <div class="card stat-card"><span>Выручка</span><strong>{{ format_price(selected.revenue, selected.currency) }}</strong></div>
+    <div class="card stat-card"><span>Себестоимость</span><strong>{{ format_price(selected.cost, selected.currency) }}</strong></div>
+    <div class="card stat-card"><span>Чистая прибыль</span><strong class="{{ 'good' if selected.profit >= 0 else 'bad' }}">{{ format_price(selected.profit, selected.currency) }}</strong></div>
+    <div class="card stat-card"><span>Заказы</span><strong>{{ selected.order_count }}</strong></div>
+  </section>
+  <section class="section-gap">
+    <h2 class="section-title">Заказы</h2>
+    {% if orders %}
+      <div class="card table-wrap">
+        <table>
+          <thead><tr><th>Заказ</th><th>Клиент</th><th>Дата</th><th>Выручка</th><th>Себестоимость</th><th>Прибыль</th></tr></thead>
+          <tbody>
+            {% for order in orders %}
+              <tr>
+                <td>#{{ order.id[-6:] }}</td>
+                <td>{{ order.customer_telegram_username }}</td>
+                <td>{{ (order.completed_at or order.created_at).strftime("%d.%m.%Y %H:%M") }}</td>
+                <td>{{ format_price(order.revenue, order.currency) }}</td>
+                <td>{{ format_price(order.cost, order.currency) }}</td>
+                <td class="{{ 'good' if order.profit >= 0 else 'bad' }}">{{ format_price(order.profit, order.currency) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="card empty">Нет выполненных заказов за выбранный период.</div>
+    {% endif %}
+  </section>
+{% endblock %}

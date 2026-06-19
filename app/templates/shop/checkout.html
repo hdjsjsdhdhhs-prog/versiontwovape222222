@@ -1,0 +1,56 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% set hide_bottom_nav = True %}
+{% block title %}Оформление заказа{% endblock %}
+{% block shop_content %}
+  {{ ui.header("Оформление заказа", True) }}
+  <main class="page">
+    {% if request.query_params.get("error") %}
+      <div class="card alert">
+        {% if request.query_params.get("error") in ["contact_required", "telegram_username_required"] %}
+          Укажите контакт для связи.
+        {% elif request.query_params.get("error") == "address_required" %}
+          Укажите адрес для доставки курьером.
+        {% elif request.query_params.get("error") == "empty_cart" %}
+          Корзина пуста.
+        {% elif request.query_params.get("error") == "payment_method_invalid" %}
+          Выберите оплату наличными или переводом курьеру.
+        {% else %}
+          {{ request.query_params.get("error") }}
+        {% endif %}
+      </div>
+    {% endif %}
+    <form class="checkout-form" method="post" action="/order">
+      <section class="card form-section">
+        <h2>Способ оплаты</h2>
+        <label><input type="radio" name="payment_method" value="CASH" checked> Наличными курьеру</label>
+        <label><input type="radio" name="payment_method" value="CARD"> Переводом курьеру</label>
+      </section>
+      <section class="card form-section">
+        <h2>Способ получения</h2>
+        <label><input type="radio" name="delivery_method" value="COURIER" checked> Courier</label>
+        <label><input type="radio" name="delivery_method" value="PICKUP"> Pickup</label>
+        <label class="field">Адрес куда доставить<input class="input" name="address" maxlength="500"></label>
+        <label class="field">Укажите удобное время для доставки<textarea class="input" name="comment" maxlength="1000"></textarea></label>
+      </section>
+      <section class="card form-section">
+        <h2>Ваш контакт</h2>
+        <label class="field">Контакт для связи<input class="input" name="telegram_username" autocomplete="off" maxlength="255" placeholder="Телеграм, телефон, VK, WhatsApp..." required></label>
+      </section>
+      <section class="card form-section">
+        <h2>Сумма заказа</h2>
+        {% for line in lines %}
+          <div class="summary-line">
+            <span>{{ line.product.name }} - {{ line.flavor.name }} x {{ line.quantity }}</span>
+            <strong>{{ format_price(line.line_total, line.product.currency) }}</strong>
+          </div>
+        {% endfor %}
+        <div class="summary-line total">
+          <span>Итого</span>
+          <strong>{{ format_price(total, currency) }}</strong>
+        </div>
+      </section>
+      <button class="btn-primary" type="submit">Оформить заказ</button>
+    </form>
+  </main>
+{% endblock %}

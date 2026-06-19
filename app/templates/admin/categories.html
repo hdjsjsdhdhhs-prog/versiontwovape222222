@@ -1,0 +1,36 @@
+{% extends "admin/layout.html" %}
+{% block title %}Категории{% endblock %}
+{% block admin_content %}
+  <div class="admin-title-row">
+    <h1>Категории</h1>
+  </div>
+  <section class="card editor-card">
+    <h2>{{ "Редактирование" if editing else "Новая категория" }}</h2>
+    <form class="admin-form" method="post" action="/admin/categories">
+      {% if editing %}<input type="hidden" name="category_id" value="{{ editing.id }}">{% endif %}
+      <label class="field">Название<input class="input" name="name" value="{{ editing.name if editing else '' }}" required maxlength="120"></label>
+      <label class="field">Slug<input class="input" name="slug" value="{{ editing.slug if editing else '' }}" maxlength="140"></label>
+      <label class="field">Изображение URL<input class="input" name="image_url" value="{{ editing.image_url if editing and editing.image_url else '' }}" maxlength="2048"></label>
+      <label class="field">Сортировка<input class="input" type="number" name="sort_order" value="{{ editing.sort_order if editing else 0 }}"></label>
+      <button class="btn-primary" type="submit">Сохранить</button>
+      {% if editing %}<a class="btn-secondary" href="/admin/categories">Отмена</a>{% endif %}
+    </form>
+  </section>
+  <section class="admin-grid">
+    {% for category in categories %}
+      <article class="card admin-list-item">
+        <div class="thumb small">{% if category.image_url %}<img src="{{ category.image_url }}" alt="{{ category.name }}">{% endif %}</div>
+        <div class="grow">
+          <strong>{{ category.name }}</strong>
+          <div class="muted">/{{ category.slug }} · {{ counts.get(category.id, 0) }} товаров</div>
+        </div>
+        <a class="btn-ghost" href="/admin/categories/{{ category.id }}/edit">Редактировать</a>
+        <form method="post" action="/admin/categories/{{ category.id }}/delete" onsubmit="return confirm('Удалить категорию?')">
+          <button class="danger-link" type="submit">Удалить</button>
+        </form>
+      </article>
+    {% else %}
+      <div class="card empty">Категорий пока нет.</div>
+    {% endfor %}
+  </section>
+{% endblock %}

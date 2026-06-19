@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block body_class %}admin-body{% endblock %}
+{% block body %}
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a class="admin-brand" href="/admin">GigaChad Shop</a>
+      <nav>
+        <a class="{{ 'active' if active in ['/admin', '/admin/'] else '' }}" href="/admin">Dashboard</a>
+        <a class="{{ 'active' if active.startswith('/admin/categories') else '' }}" href="/admin/categories">Категории</a>
+        <a class="{{ 'active' if active.startswith('/admin/products') else '' }}" href="/admin/products">Товары</a>
+        <a class="{{ 'active' if active.startswith('/admin/orders') else '' }}" href="/admin/orders">Заказы</a>
+        <a class="{{ 'active' if active.startswith('/admin/analytics') else '' }}" href="/admin/analytics">Аналитика</a>
+      </nav>
+      <form method="post" action="/admin/logout">
+        <button class="btn-ghost" type="submit">Выйти</button>
+      </form>
+    </aside>
+    <main class="admin-main">
+      {% block admin_content %}{% endblock %}
+    </main>
+  </div>
+{% endblock %}

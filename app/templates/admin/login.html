@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Admin Login{% endblock %}
+{% block body_class %}admin-body{% endblock %}
+{% block body %}
+  <main class="login-screen">
+    <form class="card login-card" method="post" action="/admin/login">
+      <h1>Admin</h1>
+      {% if request.query_params.get("error") %}<div class="alert-text">Неверный логин или пароль</div>{% endif %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <label class="field">Username<input class="input" name="username" autocomplete="username" required></label>
+      <label class="field">Password<input class="input" name="password" type="password" autocomplete="current-password" required></label>
+      <button class="btn-primary" type="submit">Войти</button>
+    </form>
+  </main>
+{% endblock %}

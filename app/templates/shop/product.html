@@ -1,0 +1,53 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block shop_content %}
+  {{ ui.header("Товар", True) }}
+  <main class="page product-page">
+    <section class="card product-detail-media">
+      <div class="product-hero">
+        {% if product.image_url %}
+          <img src="{{ product.image_url }}" alt="{{ product.name }}">
+        {% else %}
+        <span class="image-placeholder">Фото</span>
+        {% endif %}
+      </div>
+    </section>
+    <section class="product-detail">
+      <div>
+        <div class="muted">{{ product.category.name }}</div>
+        <h1>{{ product.name }}</h1>
+      </div>
+      <div class="price-row big">
+        <span class="price">{{ format_price(display_price(product), product.currency) }}</span>
+        {% if old_display_price(product) %}
+          <span class="old-price">{{ format_price(old_display_price(product), product.currency) }}</span>
+        {% endif %}
+      </div>
+      {% if product.description %}
+        <p class="description">{{ product.description }}</p>
+      {% endif %}
+      <form class="checkout-form" method="post" action="/cart/add/{{ product.id }}">
+        <section class="card form-section">
+          <h2>Выбор вкуса/цвета</h2>
+          {% for flavor in product.flavors %}
+            <label class="flavor-option {{ 'sold-out' if flavor.stock_quantity <= 0 else '' }}">
+              <input type="radio" name="flavor_id" value="{{ flavor.id }}" {{ "disabled" if flavor.stock_quantity <= 0 else "" }} required>
+              <span class="flavor-row-content">
+                <span>{{ flavor.name }}</span>
+                {% if flavor.stock_quantity <= 0 %}
+                  <span class="flavor-status">Нет в наличии</span>
+                {% endif %}
+              </span>
+            </label>
+          {% else %}
+            <div class="muted">Нет доступных вкусов/цветов.</div>
+          {% endfor %}
+        </section>
+        <button class="btn-primary" type="submit" {{ 'disabled' if not product.flavors or product.flavors|selectattr("stock_quantity", "gt", 0)|list|length == 0 else '' }}>
+          {{ "Нет в наличии" if not product.flavors or product.flavors|selectattr("stock_quantity", "gt", 0)|list|length == 0 else "В корзину" }}
+        </button>
+      </form>
+    </section>
+  </main>
+{% endblock %}

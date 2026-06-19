@@ -1,0 +1,19 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% block title %}Order Placed{% endblock %}
+{% block shop_content %}
+  {{ ui.header("Готово", True) }}
+  <main class="page">
+    <div class="card empty">
+      <h1>Заказ оформлен</h1>
+      {% if order %}
+        <p>Номер: #{{ order.id[-6:] }}</p>
+        {% for item in order.items %}
+          <p>{{ item.product_name }} - {{ item.flavor_name }} x {{ item.quantity }}</p>
+        {% endfor %}
+        <p>Сумма: {{ format_price(order.total, order.currency) }}</p>
+      {% endif %}
+      <a class="btn-primary" href="/">Вернуться в каталог</a>
+    </div>
+  </main>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body_class %}shop-body{% endblock %}
+{% block body %}
+  <div class="mobile-shell">
+    {% block shop_content %}{% endblock %}
+    {% if hide_bottom_nav is not defined or not hide_bottom_nav %}
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <a href="/" class="nav-item {{ 'active' if request.url.path == '/' else '' }}">
+          <span class="nav-icon">⌂</span>
+          <span>Каталог</span>
+        </a>
+        <a href="/cart" class="nav-item {{ 'active' if request.url.path.startswith('/cart') else '' }}">
+          <span class="nav-icon">▢</span>
+          <span>Корзина</span>
+          {% if cart_quantity %}
+            <span class="badge cart-count">{{ cart_quantity }}</span>
+          {% endif %}
+        </a>
+      </nav>
+    {% endif %}
+    {% if request.query_params.get("notice") == "out_of_stock" %}
+      <div class="toast" data-toast role="status" aria-live="polite">Остался последний вкус/цвет</div>
+    {% endif %}
+  </div>
+{% endblock %}

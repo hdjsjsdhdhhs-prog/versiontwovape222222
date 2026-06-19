@@ -1,0 +1,59 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% block title %}Корзина{% endblock %}
+{% block shop_content %}
+  {{ ui.header("Корзина", True) }}
+  <main class="page">
+    {% if not lines %}
+      <div class="card empty">
+        <h1>Корзина пуста</h1>
+        <p>Добавьте товары из каталога.</p>
+        <a class="btn-primary" href="/">К каталогу</a>
+      </div>
+    {% else %}
+      <div class="stack">
+        {% for line in lines %}
+          <article class="card cart-line">
+            <div class="thumb">
+              {% if line.product.image_url %}<img src="{{ line.product.image_url }}" alt="{{ line.product.name }}">{% endif %}
+            </div>
+            <div class="cart-body">
+              <div class="row-between">
+                <div>
+                  <strong>{{ line.product.name }}</strong>
+                  <div class="muted">Вкус/цвет: {{ line.flavor.name }}</div>
+                </div>
+                <form method="post" action="/cart/update/{{ line.flavor.id }}">
+                  <input type="hidden" name="quantity" value="0">
+                  <button class="plain-button" type="submit">×</button>
+                </form>
+              </div>
+              <div class="row-between bottom">
+                <span class="price">{{ format_price(line.line_total, line.product.currency) }}</span>
+                <div class="qty-control">
+                  <form method="post" action="/cart/update/{{ line.flavor.id }}">
+                    <input type="hidden" name="quantity" value="{{ line.quantity - 1 }}">
+                    <button type="submit">−</button>
+                  </form>
+                  <span>{{ line.quantity }}</span>
+                  <form method="post" action="/cart/update/{{ line.flavor.id }}">
+                    <input type="hidden" name="quantity" value="{{ line.quantity + 1 }}">
+                    <button type="submit">+</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+      <div class="card total-row">
+        <span>Итого</span>
+        <strong>{{ format_price(total, currency) }}</strong>
+      </div>
+      <a class="btn-primary" href="/checkout">Продолжить</a>
+      <form method="post" action="/cart/clear">
+        <button class="btn-ghost" type="submit">Очистить корзину</button>
+      </form>
+    {% endif %}
+  </main>
+{% endblock %}

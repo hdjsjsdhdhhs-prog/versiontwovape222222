@@ -1,0 +1,17 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% block title %}{{ category.name }}{% endblock %}
+{% block shop_content %}
+  {{ ui.header(category.name, True) }}
+  <main class="page">
+    {% if products %}
+      <div class="product-grid">
+        {% for product in products %}
+          {{ ui.product_card(product) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card empty">В этой категории пока нет товаров.</div>
+    {% endif %}
+  </main>
+{% endblock %}

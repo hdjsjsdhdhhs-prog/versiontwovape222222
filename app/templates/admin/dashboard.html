@@ -1,0 +1,29 @@
+{% extends "admin/layout.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block admin_content %}
+  <h1>Dashboard</h1>
+  <div class="stat-grid">
+    <a class="card stat-card" href="/admin/products"><span>Товары</span><strong>{{ product_count }}</strong></a>
+    <a class="card stat-card" href="/admin/categories"><span>Категории</span><strong>{{ category_count }}</strong></a>
+    <a class="card stat-card" href="/admin/orders"><span>Заказы</span><strong>{{ order_count }}</strong></a>
+    <a class="card stat-card" href="/admin/orders?status=PENDING"><span>В обработке</span><strong>{{ pending_count }}</strong></a>
+  </div>
+  <section class="section-gap">
+    <h2 class="section-title">Последние заказы</h2>
+    {% if orders %}
+      <div class="stack">
+        {% for order in orders %}
+          <article class="card admin-list-item">
+            <div>
+              <strong>#{{ order.id[-6:] }}</strong>
+              <div class="muted">{{ order.customer_telegram_username }} · {{ order.items|length }} поз.</div>
+            </div>
+            <div class="right">{{ format_price(order.total, order.currency) }}</div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card empty">Пока нет заказов.</div>
+    {% endif %}
+  </section>
+{% endblock %}

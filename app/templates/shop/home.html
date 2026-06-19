@@ -1,0 +1,33 @@
+{% extends "shop/layout.html" %}
+{% import "partials.html" as ui %}
+{% block title %}Каталог{% endblock %}
+{% block shop_content %}
+  {{ ui.header() }}
+  <main class="page">
+    <section>
+      <h2 class="section-title">Категории</h2>
+      <div class="category-grid">
+        {% for category in categories %}
+          <a class="card category-card" href="/category/{{ category.id }}">
+            {% if category.image_url %}
+              <img src="{{ category.image_url }}" alt="{{ category.name }}" loading="lazy">
+            {% endif %}
+            <span>{{ category.name }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="section-gap">
+      <h2 class="section-title">Распродажа</h2>
+      {% if sale_products %}
+        <div class="product-grid">
+          {% for product in sale_products %}
+            {{ ui.product_card(product) }}
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card empty">Пока нет товаров в распродаже.</div>
+      {% endif %}
+    </section>
+  </main>
+{% endblock %}

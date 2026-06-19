@@ -1,0 +1,100 @@
+{% extends "admin/layout.html" %}
+{% block title %}Товары{% endblock %}
+{% block admin_content %}
+  <h1>Товары</h1>
+  {% if request.query_params.get("error") %}
+    <div class="card alert">
+      {% if request.query_params.get("error") == "image_upload_empty" %}
+        Файл изображения пуст.
+      {% elif request.query_params.get("error") == "image_upload_unsupported" %}
+        Поддерживаются только JPG, JPEG, PNG и WebP.
+      {% elif request.query_params.get("error") == "image_upload_invalid" %}
+        Загрузите корректное изображение JPG, PNG или WebP.
+      {% else %}
+        {{ request.query_params.get("error") }}
+      {% endif %}
+    </div>
+  {% endif %}
+  <section class="card editor-card">
+    <h2>{{ "Редактировать товар" if editing else "Новый товар" }}</h2>
+    {% if not categories %}
+      <div class="alert-text">Сначала создайте категорию.</div>
+    {% else %}
+      <form class="admin-form" method="post" action="/admin/products" enctype="multipart/form-data">
+        {% if editing %}<input type="hidden" name="product_id" value="{{ editing.id }}">{% endif %}
+        <label class="field wide">Название<input class="input" name="name" value="{{ editing.name if editing else '' }}" required maxlength="200"></label>
+        <label class="field wide">Описание<textarea class="input" name="description" maxlength="5000">{{ editing.description if editing and editing.description else '' }}</textarea></label>
+        <label class="field">Категория<select class="input" name="category_id">{% for category in categories %}<option value="{{ category.id }}" {{ "selected" if editing and editing.category_id == category.id else "" }}>{{ category.name }}</option>{% endfor %}</select></label>
+        <label class="field">Цена продажи<input class="input" name="price" type="number" min="0" step="0.01" value="{{ '%.2f'|format((editing.price if editing else 0) / 100) }}" required></label>
+        <label class="field">Себестоимость<input class="input" name="cost_price" type="number" min="0" step="0.01" value="{{ '%.2f'|format((editing.cost_price if editing else 0) / 100) }}" required></label>
+        <label class="field">Валюта<select class="input" name="currency"><option {{ "selected" if not editing or editing.currency == "RUB" else "" }}>RUB</option><option {{ "selected" if editing and editing.currency == "USD" else "" }}>USD</option><option {{ "selected" if editing and editing.currency == "EUR" else "" }}>EUR</option></select></label>
+        <label class="field wide">Загрузка изображения<input class="input" name="image_upload" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></label>
+        {% if editing and editing.image_url %}
+          <div class="muted wide">Текущее изображение сохранится, если не выбрать новый файл.</div>
+        {% endif %}
+        <label class="check-row wide"><input type="checkbox" name="is_active" {{ "checked" if not editing or editing.is_active else "" }}> Активен в каталоге</label>
+        <label class="check-row wide"><input type="checkbox" name="is_sale" {{ "checked" if editing and editing.is_sale else "" }}> Показать в разделе распродажа</label>
+        <label class="field">Старая цена<input class="input" name="old_price" type="number" min="0" step="0.01" value="{{ '%.2f'|format(editing.old_price / 100) if editing and editing.old_price is not none else '' }}"></label>
+        <label class="field">Скидочная цена<input class="input" name="sale_price" type="number" min="0" step="0.01" value="{{ '%.2f'|format(editing.sale_price / 100) if editing and editing.sale_price is not none else '' }}"></label>
+        <label class="field">Значок<input class="input" name="sale_badge" value="{{ editing.sale_badge if editing and editing.sale_badge else '' }}" maxlength="40"></label>
+
+        <section class="wide flavor-editor">
+          <div class="admin-title-row">
+            <h3>Вкусы</h3>
+            <button class="btn-secondary add-flavor-button" type="button" data-add-flavor>Добавить вкус</button>
+          </div>
+          <div class="flavor-list" data-flavor-list>
+            {% if editing and editing.flavors %}
+              {% for flavor in editing.flavors %}
+                <div class="flavor-row">
+                  <input type="hidden" name="flavor_id" value="{{ flavor.id }}">
+                  <label class="field">Название вкуса<input class="input" name="flavor_name" value="{{ flavor.name }}" maxlength="200"></label>
+                  <label class="field">Остаток<input class="input" name="flavor_stock" type="number" min="0" step="1" value="{{ flavor.stock_quantity }}"></label>
+                  <label class="check-row"><input type="checkbox" name="flavor_delete" value="{{ flavor.id }}"> Удалить</label>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="flavor-row">
+                <input type="hidden" name="flavor_id" value="">
+                <label class="field">Название вкуса<input class="input" name="flavor_name" value="Default" maxlength="200"></label>
+                <label class="field">Остаток<input class="input" name="flavor_stock" type="number" min="0" step="1" value="0"></label>
+                <span></span>
+              </div>
+            {% endif %}
+          </div>
+          <template data-flavor-row-template>
+            <div class="flavor-row">
+              <input type="hidden" name="flavor_id" value="">
+              <label class="field">Название вкуса<input class="input" name="flavor_name" maxlength="200"></label>
+              <label class="field">Остаток<input class="input" name="flavor_stock" type="number" min="0" step="1" value="0"></label>
+              <button class="btn-ghost remove-flavor-button" type="button">Удалить</button>
+            </div>
+          </template>
+        </section>
+
+        <div class="form-actions wide">
+          <button class="btn-primary" type="submit">Сохранить</button>
+          {% if editing %}<a class="btn-secondary" href="/admin/products">Отмена</a>{% endif %}
+        </div>
+      </form>
+    {% endif %}
+  </section>
+  <section class="stack">
+    {% for product in products %}
+      {% set total_stock = product.flavors|sum(attribute="stock_quantity") %}
+      <article class="card admin-list-item">
+        <div class="thumb">{% if product.image_url %}<img src="{{ product.image_url }}" alt="{{ product.name }}">{% endif %}</div>
+        <div class="grow">
+          <strong>{{ product.name }}</strong>
+          <div class="muted">{{ product.category.name }} · продажа {{ format_price(display_price(product), product.currency) }} · себестоимость {{ format_price(product.cost_price, product.currency) }} · вкусов {{ product.flavors|length }} · остаток {{ total_stock }} · {{ "активен" if product.is_active else "скрыт" }}</div>
+        </div>
+        <a class="btn-ghost" href="/admin/products?edit={{ product.id }}">Редактировать</a>
+        <form method="post" action="/admin/products/{{ product.id }}/delete" onsubmit="return confirm('Удалить товар?')">
+          <button class="danger-link" type="submit">Удалить</button>
+        </form>
+      </article>
+    {% else %}
+      <div class="card empty">Товаров пока нет.</div>
+    {% endfor %}
+  </section>
+{% endblock %}
