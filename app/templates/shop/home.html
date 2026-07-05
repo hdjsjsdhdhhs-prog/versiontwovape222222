@@ -3,31 +3,74 @@
 {% block title %}Каталог{% endblock %}
 {% block shop_content %}
   {{ ui.header() }}
+  {% set visible_categories = categories[:4] %}
+  {% set category_labels = ["Vapes", "E-liquids", "Pods & Vape Devices", "Disposables"] %}
+  {% set default = namespace(id="") %}
+  {% for category in visible_categories %}
+    {% for product in category.products %}
+      {% set available_flavors = product.flavors|selectattr("stock_quantity", "gt", 0)|list %}
+      {% if default.id == "" and product.is_active and available_flavors %}
+        {% set default.id = category.id %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+  {% if default.id == "" and visible_categories %}
+    {% set default.id = visible_categories[0].id %}
+  {% endif %}
   <main class="page">
-    <section>
-      <h2 class="section-title">Категории</h2>
-      <div class="category-grid">
-        {% for category in categories %}
-          <a class="card category-card" href="/category/{{ category.id }}">
-            {% if category.image_url %}
-              <img src="{{ category.image_url }}" alt="{{ category.name }}" loading="lazy">
-            {% endif %}
-            <span>{{ category.name }}</span>
-          </a>
+    <section class="category-filter" data-category-filter>
+      <div class="category-grid" role="tablist" aria-label="Product categories">
+        {% for category in visible_categories %}
+          {% set is_active = category.id == default.id %}
+          <button
+            class="category-card {{ 'active' if is_active else '' }}"
+            type="button"
+            role="tab"
+            aria-selected="{{ 'true' if is_active else 'false' }}"
+            aria-controls="category-panel-{{ category.id }}"
+            data-category-target="{{ category.id }}"
+          >
+            <span class="category-icon" aria-hidden="true">
+              {% if loop.index0 == 0 %}
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M7 7h10l1 4v7a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-7l1-4Zm2-4h6l2 4H7l2-4Zm1 10h4"/></svg>
+              {% elif loop.index0 == 1 %}
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M10 3h4v4l4 6a5 5 0 1 1-12 0l4-6V3Zm-2 11h8"/></svg>
+              {% elif loop.index0 == 2 %}
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 3h2m-3 11h4"/></svg>
+              {% else %}
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M9 3h6l2 5v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V8l2-5Zm-1 8h8"/></svg>
+              {% endif %}
+            </span>
+            <span class="category-label">{{ category_labels[loop.index0] }}</span>
+          </button>
         {% endfor %}
       </div>
-    </section>
-    <section class="section-gap">
-      <h2 class="section-title">Распродажа</h2>
-      {% if sale_products %}
-        <div class="product-grid">
-          {% for product in sale_products %}
-            {{ ui.product_card(product) }}
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="card empty">Пока нет товаров в распродаже.</div>
-      {% endif %}
+      <div class="category-products">
+        {% for category in visible_categories %}
+          {% set is_active = category.id == default.id %}
+          {% set panel = namespace(has_products=False) %}
+          <div
+            id="category-panel-{{ category.id }}"
+            class="category-panel {{ 'active' if is_active else '' }}"
+            role="tabpanel"
+            data-category-panel="{{ category.id }}"
+            {{ '' if is_active else 'hidden' }}
+          >
+            <div class="product-grid">
+              {% for product in category.products|sort(attribute="created_at", reverse=True) %}
+                {% set available_flavors = product.flavors|selectattr("stock_quantity", "gt", 0)|list %}
+                {% if product.is_active and available_flavors %}
+                  {% set panel.has_products = True %}
+                  {{ ui.product_card(product) }}
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% if not panel.has_products %}
+              <div class="card empty">No products in this category yet.</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
     </section>
   </main>
 {% endblock %}

@@ -34,9 +34,48 @@
     });
   }
 
+  function initCategoryFilter() {
+    document.querySelectorAll("[data-category-filter]").forEach(function (filter) {
+      if (filter.dataset.categoryFilterReady === "1") return;
+      var buttons = Array.prototype.slice.call(filter.querySelectorAll("[data-category-target]"));
+      var panels = Array.prototype.slice.call(filter.querySelectorAll("[data-category-panel]"));
+      if (!buttons.length || !panels.length) return;
+      filter.dataset.categoryFilterReady = "1";
+
+      function setActive(categoryId) {
+        buttons.forEach(function (button) {
+          var isActive = button.dataset.categoryTarget === categoryId;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        panels.forEach(function (panel) {
+          var isActive = panel.dataset.categoryPanel === categoryId;
+          panel.classList.toggle("active", isActive);
+          panel.hidden = !isActive;
+        });
+      }
+
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setActive(button.dataset.categoryTarget);
+        });
+      });
+
+      var activeButton = null;
+      buttons.forEach(function (button) {
+        if (!activeButton && button.classList.contains("active")) {
+          activeButton = button;
+        }
+      });
+      setActive((activeButton || buttons[0]).dataset.categoryTarget);
+    });
+  }
+
   function initApp() {
     initFlavorEditor();
     initToast();
+    initCategoryFilter();
   }
 
   if (document.readyState === "loading") {
