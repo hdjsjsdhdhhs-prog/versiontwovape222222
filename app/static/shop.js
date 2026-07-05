@@ -72,10 +72,34 @@
     });
   }
 
+  function initCartBadgeAnimation() {
+    var nav = document.querySelector(".bottom-nav");
+    if (!nav) return;
+    var badge = nav.querySelector("[data-cart-count]");
+    var currentCount = badge ? parseInt(badge.dataset.cartCount || badge.textContent || "0", 10) : 0;
+    if (isNaN(currentCount)) currentCount = 0;
+
+    try {
+      var storageKey = "shopCartCount";
+      var previousValue = window.localStorage.getItem(storageKey);
+      var previousCount = previousValue === null ? null : parseInt(previousValue, 10);
+      if (badge && previousCount !== null && currentCount > previousCount) {
+        badge.classList.add("bump");
+        window.setTimeout(function () {
+          badge.classList.remove("bump");
+        }, 260);
+      }
+      window.localStorage.setItem(storageKey, String(currentCount));
+    } catch (_error) {
+      return;
+    }
+  }
+
   function initApp() {
     initFlavorEditor();
     initToast();
     initCategoryFilter();
+    initCartBadgeAnimation();
   }
 
   if (document.readyState === "loading") {

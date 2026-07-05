@@ -5,15 +5,17 @@
     {% block shop_content %}{% endblock %}
     {% if hide_bottom_nav is not defined or not hide_bottom_nav %}
       <nav class="bottom-nav" aria-label="Main navigation">
-        <a href="/" class="nav-item {{ 'active' if request.url.path == '/' else '' }}">
-          <span class="nav-icon">⌂</span>
-          <span>Каталог</span>
-        </a>
-        <a href="/cart" class="nav-item {{ 'active' if request.url.path.startswith('/cart') else '' }}">
-          <span class="nav-icon">▢</span>
-          <span>Корзина</span>
+        <div class="bottom-panel" aria-hidden="true"></div>
+        <a href="/cart" class="floating-cart-button {{ 'active' if request.url.path.startswith('/cart') else '' }}" aria-label="Cart">
+          <span class="cart-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M6.5 8.5h11l-1 9a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8l-1-9Z"/>
+              <path d="M9 8.5a3 3 0 0 1 6 0"/>
+              <path d="M9.5 12h5"/>
+            </svg>
+          </span>
           {% if cart_quantity %}
-            <span class="badge cart-count">{{ cart_quantity }}</span>
+            <span class="cart-count" data-cart-count="{{ cart_quantity }}">{{ cart_quantity }}</span>
           {% endif %}
         </a>
       </nav>
